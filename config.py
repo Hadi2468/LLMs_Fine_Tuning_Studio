@@ -12,7 +12,20 @@ LORA_CONFIG = {
 
 TRAINING_CONFIG = {
     "batch_size": 4,
+    "gradient_accumulation_steps": 4,
     "epochs": 20,
-    "learning_rate": 2e-4
+    "learning_rate": 2e-4,
+    "weight_decay": 0.01,
+    "warmup_steps": 10,
+    "logging_steps": 5,
+    "optim": "adamw_8bit",
+    "max_seq_length": 512,
+}
+
+DATA_PATH = {
+    "data_dir": "./data",
+    "output_dir": "./output",
+    "model_dir": "./output/model",
+    "log_dir": "./output/logs"
 }
 

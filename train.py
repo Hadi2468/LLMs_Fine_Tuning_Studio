@@ -1,50 +1,70 @@
 import gc
 import torch
-
 from trl import SFTTrainer, SFTConfig
 
-from dataset_loader import load_dataset
 from model_loader import load_model
-
-DATASET_PATH = "data/train_data.json"
-
-model, tokenizer = load_model(
-    "meta-llama/Llama-3.2-1B"
+from config import (
+    TRAINING_CONFIG,
+    DATA_PATH
+)
+from dataset_loader import (
+    load_dataset,
+    format_dataset
 )
 
-dataset = load_dataset(DATASET_PATH)
+# Load model and tokenizer
+model, tokenizer = load_model()
 
-def format_instruction(example):
+# Data and model directories
+data_path = DATA_PATH["data_dir"] + "/train_data.json"
+output_dir = DATA_PATH["output_dir"]
+model_path = DATA_PATH["model_dir"]
 
-    return {
-        "text":
-        f"### Instruction:\n{example['instruction']}\n\n"
-        f"### Response:\n{example['response']}"
-        f"{tokenizer.eos_token}"
-    }
+# Load dataset
+dataset = load_dataset(data_path)
 
-dataset = dataset.map(format_instruction)
+# Format dataset
+formatted_dataset = format_dataset(dataset, tokenizer)  
+print("\nDataset formatted successfully.\n")
 
+# Free memory
 torch.cuda.empty_cache()
 gc.collect()
 
+# Training configuration
 training_args = SFTConfig(
-    output_dir="./models",
-    per_device_train_batch_size=4,
-    num_train_epochs=20,
-    learning_rate=2e-4,
+    output_dir=output_dir,
+    per_device_train_batch_size=TRAINING_CONFIG["batch_size"],
+    gradient_accumulation_steps=TRAINING_CONFIG["gradient_accumulation_steps"],
+    num_train_epochs=TRAINING_CONFIG["epochs"],
+    learning_rate=TRAINING_CONFIG["learning_rate"],
+    weight_decay=TRAINING_CONFIG["weight_decay"],
+    warmup_steps=TRAINING_CONFIG["warmup_steps"],
+    fp16=not torch.cuda.is_bf16_supported(),
+    bf16=torch.cuda.is_bf16_supported(),
+    logging_steps=TRAINING_CONFIG["logging_steps"],
+    save_strategy="epoch",
+    report_to="none",
+    optim=TRAINING_CONFIG["optim"],
     dataset_text_field="text",
-    report_to="none"
+    max_seq_length=TRAINING_CONFIG["max_seq_length"],
+    dataloader_num_workers=0,
+    packing=False,
 )
 
+# Trainer
 trainer = SFTTrainer(
     model=model,
     processing_class=tokenizer,
-    train_dataset=dataset,
+    train_dataset=formatted_dataset,
     args=training_args,
 )
+print("\nTrainer initialized successfully.\n")
 
+# Train the fine-tuned model
 trainer.train()
 
-model.save_pretrained("./models")
-tokenizer.save_pretrained("./models")
+# Save the fine-tuned model
+model.save_pretrained(model_path)
+tokenizer.save_pretrained(model_path)
+print("\n\n======== Model saved successfully! ========\n\n")
