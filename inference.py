@@ -2,13 +2,13 @@ import torch
 from transformers import TextStreamer
 from unsloth import FastLanguageModel
 
-from config import TEST_CONFIG, MODEL_CONFIG
+from config import DATA_PATH, TEST_CONFIG, MODEL_CONFIG
 
 
 # Loading pretrained model
 
 model, tokenizer = FastLanguageModel.from_pretrained(
-    model_name=MODEL_CONFIG["model_name"],
+    model_name=DATA_PATH["model_dir"],
     max_seq_length=MODEL_CONFIG["max_seq_length"],
     dtype=None,
     load_in_4bit=MODEL_CONFIG["load_in_4bit"],
