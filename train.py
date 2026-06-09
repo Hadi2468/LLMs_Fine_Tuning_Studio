@@ -50,8 +50,8 @@ training_args = SFTConfig(
     packing=False,
 )
 
-# if tokenizer.eos_token is None:
-#     tokenizer.eos_token = "</s>"
+if tokenizer.eos_token is None:
+    tokenizer.eos_token = "</s>"
 
 # Trainer
 trainer = SFTTrainer(
