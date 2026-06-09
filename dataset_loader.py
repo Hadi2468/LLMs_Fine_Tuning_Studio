@@ -16,7 +16,6 @@ def load_dataset(json_file):
 
 
 # Format dataset for training
-
 def format_dataset(dataset, tokenizer):
 
     def format_instruction(example):

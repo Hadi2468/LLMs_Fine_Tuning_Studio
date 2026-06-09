@@ -1,5 +1,5 @@
-# import os
-# os.environ["UNSLOTH_DISABLE_PATCHING"] = "1"
+import os
+os.environ["UNSLOTH_DISABLE_PATCHING"] = "1"
 
 # import gc
 import torch
