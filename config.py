@@ -1,3 +1,10 @@
+DATA_PATH = {
+    "data_dir": "./data",
+    "output_dir": "./output",
+    "model_dir": "./output/model",
+    "log_dir": "./output/logs"
+}
+
 MODEL_CONFIG = {
     "model_name": "meta-llama/Llama-3.2-1B",
     "max_seq_length": 512,
@@ -22,10 +29,10 @@ TRAINING_CONFIG = {
     "max_seq_length": 512,
 }
 
-DATA_PATH = {
-    "data_dir": "./data",
-    "output_dir": "./output",
-    "model_dir": "./output/model",
-    "log_dir": "./output/logs"
+TEST_CONFIG = {
+    "max_new_tokens": 100,
+    "temperature": 0.9,
+    "top_p": 0.9,
+    "repetition_penalty": 1.4,
 }
 

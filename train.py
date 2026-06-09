@@ -3,14 +3,9 @@ import torch
 from trl import SFTTrainer, SFTConfig
 
 from model_loader import load_model
-from config import (
-    TRAINING_CONFIG,
-    DATA_PATH
-)
-from dataset_loader import (
-    load_dataset,
-    format_dataset
-)
+from config import DATA_PATH, TRAINING_CONFIG
+from dataset_loader import load_dataset, format_dataset
+
 
 # Load model and tokenizer
 model, tokenizer = load_model()
