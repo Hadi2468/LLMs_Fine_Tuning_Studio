@@ -25,7 +25,6 @@ def format_dataset(dataset, tokenizer):
             "text": 
             f"### Instruction:\n{example['instruction']}\n\n"
             f"### Response:\n{example['response']}"
-            f"{tokenizer.eos_token}"
         }
     
     return dataset.map(format_instruction)
