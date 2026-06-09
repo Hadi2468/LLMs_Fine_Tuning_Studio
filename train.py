@@ -46,10 +46,13 @@ training_args = SFTConfig(
     packing=False,
 )
 
+if tokenizer.eos_token is None:
+    tokenizer.eos_token = "</s>"
+
 # Trainer
 trainer = SFTTrainer(
     model=model,
-    processing_class=tokenizer,
+    tokenizer=tokenizer,
     train_dataset=formatted_dataset,
     args=training_args,
 )
