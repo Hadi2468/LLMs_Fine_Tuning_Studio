@@ -1,19 +1,11 @@
-# import os
-# os.environ["UNSLOTH_DISABLE_PATCHING"] = "1"
-
-# import gc
 import torch
-# import trl, unsloth, transformers
 from trl import SFTTrainer, SFTConfig
 
 from model_loader import load_model
 from config import DATA_PATH, TRAINING_CONFIG
 from dataset_loader import load_dataset, format_dataset
 
-# print("Torch:", torch.__version__)
-# print("Transformers:", transformers.__version__)
-# print("TRL:", trl.__version__)
-# print("Unsloth:", unsloth.__version__)
+
 
 # Load model and tokenizer
 model, tokenizer = load_model()
@@ -30,9 +22,6 @@ dataset = load_dataset(data_path)
 formatted_dataset = format_dataset(dataset, tokenizer)  
 print("\n======== Dataset formatted successfully! ========\n")
 
-# Free memory
-# torch.cuda.empty_cache()
-# gc.collect()
 
 # Training configuration
 training_args = SFTConfig(
