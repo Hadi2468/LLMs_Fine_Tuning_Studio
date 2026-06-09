@@ -6,7 +6,9 @@ DATA_PATH = {
 }
 
 MODEL_CONFIG = {
-    "model_name": "meta-llama/Llama-3.2-1B",
+    # "model_name": "meta-llama/Llama-3.2-1B",
+    "model_name": "meta-llama/Meta-Llama-3.1-8B",
+    # "model_name": "meta-llama/Llama-3.3-70B-Instruct",
     "max_seq_length": 512,
     "load_in_4bit": False # LoRA: False, QLoRA: True
 }
@@ -31,7 +33,7 @@ TRAINING_CONFIG = {
 
 TEST_CONFIG = {
     "max_new_tokens": 200,
-    "temperature": 0.1,
+    "temperature": 0.7,
     "top_p": 0.9,
     "repetition_penalty": 1.4,
 }
