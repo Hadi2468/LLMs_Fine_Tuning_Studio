@@ -42,7 +42,6 @@ training_args = SFTConfig(
     report_to="none",
     optim=TRAINING_CONFIG["optim"],
     dataset_text_field="text",
-    max_seq_length=TRAINING_CONFIG["max_seq_length"],
     dataloader_num_workers=0,
     packing=False,
 )
