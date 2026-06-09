@@ -1,3 +1,6 @@
+import os
+os.environ["UNSLOTH_DISABLE_PATCHING"] = "1"
+
 import gc
 import torch
 from trl import SFTTrainer, SFTConfig

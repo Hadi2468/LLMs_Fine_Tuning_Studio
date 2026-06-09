@@ -1,3 +1,4 @@
+import unsloth
 from unsloth import FastLanguageModel
 
 from config import MODEL_CONFIG, LORA_CONFIG
