@@ -1,5 +1,8 @@
+import os
 import torch
-import trl, unsloth, transformers
+# import transformers
+import unsloth
+# import trl
 from trl import SFTTrainer, SFTConfig
 
 from src.model_loader import load_model
@@ -12,8 +15,13 @@ model, tokenizer = load_model()
 
 # Data and model directories
 data_path = DATA_PATH["data_dir"] / "train_data.json"
-output_dir = DATA_PATH["output_dir"]
-model_path = DATA_PATH["model_dir"]
+output_dir = str(DATA_PATH["output_dir"])
+model_path = str(DATA_PATH["model_dir"])
+log_dir = str(DATA_PATH["log_dir"])
+
+os.makedirs(output_dir, exist_ok=True)
+os.makedirs(model_path, exist_ok=True)
+os.makedirs(log_dir, exist_ok=True)
 
 # Load dataset
 dataset = load_dataset(data_path)

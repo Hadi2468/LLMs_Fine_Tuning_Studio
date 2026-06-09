@@ -12,6 +12,7 @@ model, tokenizer = FastLanguageModel.from_pretrained(
     max_seq_length=MODEL_CONFIG["max_seq_length"],
     dtype=None,
     load_in_4bit=MODEL_CONFIG["load_in_4bit"],
+    device_map="cuda",
 )
 
 FastLanguageModel.for_inference(model)

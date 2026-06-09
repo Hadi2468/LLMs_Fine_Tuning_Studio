@@ -11,6 +11,7 @@ def load_model():
         max_seq_length=MODEL_CONFIG["max_seq_length"],
         dtype=None,
         load_in_4bit=MODEL_CONFIG["load_in_4bit"],
+        device_map="cuda",
     )
 
     model = FastLanguageModel.get_peft_model(
