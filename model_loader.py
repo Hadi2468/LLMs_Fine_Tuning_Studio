@@ -27,8 +27,8 @@ def load_model():
         use_gradient_checkpointing="unsloth",
     )
 
-    # tokenizer.pad_token = tokenizer.eos_token
-    # tokenizer.eos_token = tokenizer.eos_token if tokenizer.eos_token is not None else "</s>"
+    tokenizer.pad_token = tokenizer.eos_token
+    tokenizer.eos_token = tokenizer.eos_token if tokenizer.eos_token is not None else "</s>"
 
     print("\n======== Trainable Parameters ========")
     model.print_trainable_parameters()
