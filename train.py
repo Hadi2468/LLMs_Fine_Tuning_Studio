@@ -1,5 +1,5 @@
-import os
-os.environ["UNSLOTH_DISABLE_PATCHING"] = "1"
+# import os
+# os.environ["UNSLOTH_DISABLE_PATCHING"] = "1"
 
 import gc
 import torch
@@ -26,8 +26,8 @@ formatted_dataset = format_dataset(dataset, tokenizer)
 print("\n======== Dataset formatted successfully! ========\n")
 
 # Free memory
-torch.cuda.empty_cache()
-gc.collect()
+# torch.cuda.empty_cache()
+# gc.collect()
 
 # Training configuration
 training_args = SFTConfig(
