@@ -2,7 +2,7 @@ import torch
 from transformers import TextStreamer
 from unsloth import FastLanguageModel
 
-from config import DATA_PATH, TEST_CONFIG, MODEL_CONFIG
+from config import TEST_CONFIG, MODEL_CONFIG
 
 
 # Loading pretrained model

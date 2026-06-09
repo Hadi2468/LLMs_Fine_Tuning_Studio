@@ -1,20 +1,14 @@
-import os
-os.environ["UNSLOTH_DISABLE_PATCHING"] = "1"
+# import os
+# os.environ["UNSLOTH_DISABLE_PATCHING"] = "1"
 
-import gc
+# import gc
 import torch
-import trl, unsloth, transformers
+# import trl, unsloth, transformers
 from trl import SFTTrainer, SFTConfig
 
 from model_loader import load_model
 from config import DATA_PATH, TRAINING_CONFIG
 from dataset_loader import load_dataset, format_dataset
-
-print("Torch:", torch.__version__)
-print("Transformers:", transformers.__version__)
-print("TRL:", trl.__version__)
-print("Unsloth:", unsloth.__version__)
-
 
 # Load model and tokenizer
 model, tokenizer = load_model()
@@ -29,11 +23,11 @@ dataset = load_dataset(data_path)
 
 # Format dataset
 formatted_dataset = format_dataset(dataset, tokenizer)  
-print("\nDataset formatted successfully.\n")
+print("\n======== Dataset formatted successfully! ========\n")
 
 # Free memory
-torch.cuda.empty_cache()
-gc.collect()
+# torch.cuda.empty_cache()
+# gc.collect()
 
 # Training configuration
 training_args = SFTConfig(
@@ -56,8 +50,8 @@ training_args = SFTConfig(
     packing=False,
 )
 
-if tokenizer.eos_token is None:
-    tokenizer.eos_token = "</s>"
+# if tokenizer.eos_token is None:
+#     tokenizer.eos_token = "</s>"
 
 # Trainer
 trainer = SFTTrainer(
@@ -66,7 +60,7 @@ trainer = SFTTrainer(
     train_dataset=formatted_dataset,
     args=training_args,
 )
-print("\nTrainer initialized successfully.\n")
+print("\n======== Trainer initialized successfully! ========\n")
 
 # Train the fine-tuned model
 trainer.train()
@@ -74,4 +68,4 @@ trainer.train()
 # Save the fine-tuned model
 model.save_pretrained(model_path)
 tokenizer.save_pretrained(model_path)
-print("\n\n======== Model saved successfully! ========\n\n")
+print("\n======== Model saved successfully! ========\n")

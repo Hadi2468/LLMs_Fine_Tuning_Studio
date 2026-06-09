@@ -1,8 +1,8 @@
 DATA_PATH = {
-    "data_dir": "./data",
+    "data_dir":   "./data",
     "output_dir": "./output",
-    "model_dir": "./output/model",
-    "log_dir": "./output/logs"
+    "model_dir":  "./output/model",
+    "log_dir":    "./output/logs"
 }
 
 MODEL_CONFIG = {
