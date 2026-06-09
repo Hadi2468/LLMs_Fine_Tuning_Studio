@@ -1,14 +1,19 @@
 # import os
 # os.environ["UNSLOTH_DISABLE_PATCHING"] = "1"
 
-import gc
+# import gc
 import torch
-import trl, unsloth, transformers
+# import trl, unsloth, transformers
 from trl import SFTTrainer, SFTConfig
 
 from model_loader import load_model
 from config import DATA_PATH, TRAINING_CONFIG
 from dataset_loader import load_dataset, format_dataset
+
+# print("Torch:", torch.__version__)
+# print("Transformers:", transformers.__version__)
+# print("TRL:", trl.__version__)
+# print("Unsloth:", unsloth.__version__)
 
 # Load model and tokenizer
 model, tokenizer = load_model()
