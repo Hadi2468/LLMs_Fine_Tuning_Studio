@@ -1,7 +1,7 @@
 import unsloth
 from unsloth import FastLanguageModel
 
-from config import MODEL_CONFIG, LORA_CONFIG
+from src.config import MODEL_CONFIG, LORA_CONFIG
 
 
 def load_model():

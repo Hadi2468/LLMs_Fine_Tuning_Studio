@@ -1,6 +1,12 @@
 import json
 import streamlit as st
 
+from src.inference import generate
+
+st.set_page_config(
+    page_title="LLM Fine-Tuning Studio",
+    page_icon=":robot:"
+)
 st.title("LLM Fine-Tuning Studio")
 
 uploaded_file = st.file_uploader(
