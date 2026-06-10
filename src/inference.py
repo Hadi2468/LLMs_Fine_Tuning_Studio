@@ -57,4 +57,4 @@ def generate(question:str):
 
 # quick test
 if __name__ == "__main__":
-    generate("Who is Hadi?")
+    generate("Who is Sotude?")
