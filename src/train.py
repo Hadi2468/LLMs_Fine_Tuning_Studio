@@ -1,72 +1,104 @@
 import os
 import torch
-# import transformers
-import unsloth
-# import trl
 from trl import SFTTrainer, SFTConfig
 
 from src.model_loader import load_model
-from src.config import DATA_PATH, TRAINING_CONFIG
 from src.dataset_loader import load_dataset, format_dataset
+from src.config import DATA_PATH, LORA_CONFIG
 
 
-# Load model and tokenizer
-model, tokenizer = load_model()
 
-# Data and model directories
-data_path = DATA_PATH["data_dir"] / "train_data.json"
-output_dir = str(DATA_PATH["output_dir"])
-model_path = str(DATA_PATH["model_dir"])
-log_dir = str(DATA_PATH["log_dir"])
+def train_model(config):
 
-os.makedirs(output_dir, exist_ok=True)
-os.makedirs(model_path, exist_ok=True)
-os.makedirs(log_dir, exist_ok=True)
+    # lazy import
+    import unsloth  # only when training starts
+    if not config.get("use_gpu", False):
+        print("⚠️ GPU training disabled (mock mode)")
+        return True
 
-# Load dataset
-dataset = load_dataset(data_path)
+    # Set default values for missing configuration parameters
+    config.setdefault("weight_decay", 0.01)
+    config.setdefault("warmup_steps", 10)
+    config.setdefault("logging_steps", 5)
 
-# Format dataset
-formatted_dataset = format_dataset(dataset, tokenizer)  
-print("\n======== Dataset formatted successfully! ========\n")
+    # Print configuration
+    print("\n======== Training Configuration ========\n")
+    for key, value in config.items():
+        print(f"{key}: {value}")
+    print()
 
-# Training configuration
-training_args = SFTConfig(
-    output_dir=output_dir,
-    per_device_train_batch_size=TRAINING_CONFIG["batch_size"],
-    gradient_accumulation_steps=TRAINING_CONFIG["gradient_accumulation_steps"],
-    num_train_epochs=TRAINING_CONFIG["epochs"],
-    learning_rate=TRAINING_CONFIG["learning_rate"],
-    weight_decay=TRAINING_CONFIG["weight_decay"],
-    warmup_steps=TRAINING_CONFIG["warmup_steps"],
-    fp16=not torch.cuda.is_bf16_supported(),
-    bf16=torch.cuda.is_bf16_supported(),
-    logging_steps=TRAINING_CONFIG["logging_steps"],
-    save_strategy="epoch",
-    report_to="none",
-    optim=TRAINING_CONFIG["optim"],
-    dataset_text_field="text",
-    max_length=TRAINING_CONFIG["max_seq_length"],
-    dataloader_num_workers=0,
-    packing=False,
-)
+    lora_config = {
+        "r": config.get("r", LORA_CONFIG["r"]),
+        "lora_alpha": config.get("lora_alpha", LORA_CONFIG["lora_alpha"]),
+        "lora_dropout": config.get("lora_dropout", LORA_CONFIG["lora_dropout"]),
+    }
+    
+    # Load model and tokenizer
+    model, tokenizer = load_model(
+        model_name=config["model_name"],
+        max_seq_length=config["max_seq_length"],
+        load_in_4bit=config["load_in_4bit"],
+        r=lora_config["r"],
+        lora_alpha=lora_config["lora_alpha"],
+        lora_dropout=lora_config["lora_dropout"],
+    )
 
-if tokenizer.eos_token is None:
-    tokenizer.eos_token = "</s>"
+    # Data and model directories
+    data_path = DATA_PATH["data_dir"] / "train_data.json"
+    output_dir = str(DATA_PATH["output_dir"])
+    model_path = str(DATA_PATH["model_dir"])
+    log_dir = str(DATA_PATH["log_dir"])
 
-# Trainer
-trainer = SFTTrainer(
-    model=model,
-    processing_class=tokenizer,
-    train_dataset=formatted_dataset,
-    args=training_args,
-)
-print("\n======== Trainer initialized successfully! ========\n")
+    os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(model_path, exist_ok=True)
+    os.makedirs(log_dir, exist_ok=True)
 
-# Train the fine-tuned model
-trainer.train()
+    # Load dataset
+    dataset = load_dataset(data_path)
 
-# Save the fine-tuned model
-model.save_pretrained(model_path)
-tokenizer.save_pretrained(model_path)
-print("\n======== Model saved successfully! ========\n")
+    # Format dataset
+    formatted_dataset = format_dataset(dataset, tokenizer)  
+    print("\n======== Dataset formatted successfully! ========\n")
+
+    # Training configuration
+    training_args = SFTConfig(
+        output_dir=output_dir,
+        per_device_train_batch_size=config["batch_size"],
+        gradient_accumulation_steps=config["gradient_accumulation_steps"],
+        num_train_epochs=config["epochs"],
+        learning_rate=config["learning_rate"],
+        weight_decay=config.get("weight_decay", 0.01),
+        warmup_steps=config.get("warmup_steps", 10),
+        fp16=not torch.cuda.is_bf16_supported(),
+        bf16=torch.cuda.is_bf16_supported(),
+        logging_steps=config.get("logging_steps", 5),
+        save_strategy="epoch",
+        report_to="none",
+        optim=config["optim"],
+        dataset_text_field="text",
+        max_length=config["max_seq_length"],
+        dataloader_num_workers=0,
+        packing=False,
+    )
+
+    if tokenizer.eos_token is None:
+        tokenizer.eos_token = "</s>"
+
+    # Trainer
+    trainer = SFTTrainer(
+        model=model,
+        processing_class=tokenizer,
+        train_dataset=formatted_dataset,
+        args=training_args,
+    )
+    print("\n======== Trainer initialized successfully! ========\n")
+
+    # Train the fine-tuned model
+    trainer.train()
+
+    # Save the fine-tuned model
+    model.save_pretrained(model_path)
+    tokenizer.save_pretrained(model_path)
+    print("\n======== Model saved successfully! ========\n")
+
+    return True
