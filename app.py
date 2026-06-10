@@ -1,50 +1,47 @@
-import json
+import torch
 import streamlit as st
 
-from src.inference import generate
+from src.ui.sidebar import render_sidebar
+from src.ui.training_panel import render_training_panel
+from src.ui.inference_panel import render_inference_panel
+
 
 st.set_page_config(
-    page_title="LLM Fine-Tuning Studio",
-    page_icon=":robot:"
-)
-st.title("LLM Fine-Tuning Studio")
-
-uploaded_file = st.file_uploader(
-    "Upload Dataset",
-    type=["json"]
+    page_title="LLMs Fine-Tuning Studio",
+    page_icon="🧠",
+    layout="wide"
 )
 
-epochs = st.sidebar.slider(
-    "Epochs",
-    1,
-    50,
-    20
-)
+st.title("🧠 LLMs Fine-Tuning Studio")
 
-batch_size = st.sidebar.slider(
-    "Batch Size",
-    1,
-    16,
-    4
-)
+# Sidebar (controls config)
+render_sidebar()
 
-if uploaded_file:
+tab1, tab2 = st.tabs(["🚀 Training", "💬 Chat Inference"])
 
-    data = json.load(uploaded_file)
+with tab1:
+    render_training_panel()
 
-    st.success(
-        f"{len(data)} examples loaded."
-    )
+with tab2:
+    render_inference_panel()
 
-if st.button("Start Training"):
+if not torch.cuda.is_available():
+    st.error("🚨 No GPU detected. Training will not work with Unsloth.")
 
-    st.info(
-        "Training job configuration generated."
-    )
+# --------------------------------------------------------------------------------
+st.markdown("""
+    <style>
+    html, body, [class*="css"] {
+        font-size: 18px;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-    st.write(
-        {
-            "epochs": epochs,
-            "batch_size": batch_size
-        }
-    )
+st.sidebar.markdown("---")
+st.sidebar.markdown("""
+    **🧑🏻‍💻 Author**  
+    **Hadi Hosseini**  
+    AI/ML Engineer  
+    [![GitHub](https://img.shields.io/badge/GitHub-100000?style=flat&logo=github&logoColor=white)](https://github.com/Hadi2468/LLMs_Fine_Tuning_Studio)
+                    [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/hadi468)
+""")

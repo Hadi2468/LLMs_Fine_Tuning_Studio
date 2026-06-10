@@ -1,27 +1,37 @@
 import torch
-from transformers import TextStreamer
-from unsloth import FastLanguageModel
+import streamlit as st
 
 from src.config import DATA_PATH, TEST_CONFIG, MODEL_CONFIG
 
 
 # Loading pretrained model
+@st.cache_resource
+def load_finetuned_model():
 
-model, tokenizer = FastLanguageModel.from_pretrained(
-    model_name=str(DATA_PATH["model_dir"]),
-    max_seq_length=MODEL_CONFIG["max_seq_length"],
-    dtype=None,
-    load_in_4bit=MODEL_CONFIG["load_in_4bit"],
-    device_map="cuda",
-)
+    # lazy import
+    from unsloth import FastLanguageModel
 
-FastLanguageModel.for_inference(model)
+    model, tokenizer = FastLanguageModel.from_pretrained(
+        model_name=str(DATA_PATH["model_dir"]),
+        max_seq_length=MODEL_CONFIG["max_seq_length"],
+        dtype=None,
+        load_in_4bit=MODEL_CONFIG["load_in_4bit"],
+        device_map="cuda",
+    )
 
-tokenizer.pad_token = tokenizer.eos_token
+    FastLanguageModel.for_inference(model)
+
+    tokenizer.pad_token = tokenizer.eos_token
+
+    return model, tokenizer
+
 
 # Prompting
-def generate(question:str):
+def generate(question:str, temperature=None, top_p=None):
 
+    model, tokenizer = load_finetuned_model()
+
+    # Prompt
     prompt = f"""
 ### Instruction:
 {question}
@@ -36,25 +46,26 @@ def generate(question:str):
         return_tensors="pt"
     ).to(device)
 
-    streamer = TextStreamer(
-        tokenizer,
-        skip_prompt=True
-    )
-
     with torch.inference_mode():
 
         output = model.generate(
             **inputs,
-            streamer=streamer,
             max_new_tokens=TEST_CONFIG["max_new_tokens"],
-            temperature=TEST_CONFIG["temperature"],
-            top_p=TEST_CONFIG["top_p"],
+            temperature=temperature or TEST_CONFIG["temperature"],
+            top_p=top_p or TEST_CONFIG["top_p"],
             repetition_penalty=TEST_CONFIG["repetition_penalty"],
             pad_token_id=tokenizer.eos_token_id,
         )
-    return tokenizer.decode(output[0], skip_special_tokens=True)
+    
+    decoded = tokenizer.decode(output[0], skip_special_tokens=True)
+    
+    if "### Response:" in decoded:
+        decoded = decoded.split("### Response:")[-1].strip()
+    
+    return decoded
 
 
 # quick test
 if __name__ == "__main__":
-    generate("Who is Sotude?")
+    response = generate("Who is Sotude?")
+    print(response)
