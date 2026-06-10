@@ -1,5 +1,5 @@
 # LLMs_Fine_Tuning_Studio
-LLMs_Fine_Tuning_Studio: A production-ready Streamlit platform for fine-tuning open-source LLMs using LoRA and QLoRA across Hugging Face and Unsloth backends, supporting multiple foundation models, dataset ingestion, evaluation, experiment tracking, and model deployment.
+**LLMs_Fine_Tuning_Studio:** A production-ready Streamlit platform for fine-tuning open-source LLMs using LoRA and QLoRA across Hugging Face and Unsloth backends, supporting multiple foundation models, dataset ingestion, evaluation, experiment tracking, and model deployment.
 
 ## 🧩 Current Features
 
@@ -13,15 +13,15 @@ LLMs_Fine_Tuning_Studio: A production-ready Streamlit platform for fine-tuning o
 
 ## ❯❯❯ Roadmap
 
-▶️ Streamlit-based training dashboard  
-▶️ Dataset upload and management interface  
-▶️ Hyperparameter configuration (epochs, batch size, learning rate, etc.)  
-▶️ Real-time training logs and metrics visualization  
-▶️ LoRA and QLoRA support  
-▶️ Multiple model selection  
-▶️ Hugging Face Hub integration  
-▶️ Model evaluation and benchmarking  
-▶️ Experiment tracking and versioning  
+☑️ Streamlit-based training dashboard  
+☑️ Dataset upload and management interface  
+☑️ Hyperparameter configuration (epochs, batch size, learning rate, etc.)  
+☑️ Real-time training logs and metrics visualization  
+☑️ LoRA and QLoRA support  
+☑️ Multiple model selection  
+☑️ Hugging Face Hub integration  
+☑️ Model evaluation and benchmarking  
+☑️ Experiment tracking and versioning  
 
 ## 🛠️ Tech Stack
 
