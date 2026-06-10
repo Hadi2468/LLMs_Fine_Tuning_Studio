@@ -1,8 +1,13 @@
+from pathlib import Path
+
+ROOT_DIR = Path(__file__).resolve().parent.parent
+
+
 DATA_PATH = {
-    "data_dir":   "./data",
-    "output_dir": "./output",
-    "model_dir":  "./output/model",
-    "log_dir":    "./output/logs"
+    "data_dir":   ROOT_DIR / "data",
+    "output_dir": ROOT_DIR / "output",
+    "model_dir":  ROOT_DIR / "output" / "model",
+    "log_dir":    ROOT_DIR / "output" / "logs"
 }
 
 MODEL_CONFIG = {
@@ -33,7 +38,7 @@ TRAINING_CONFIG = {
 
 TEST_CONFIG = {
     "max_new_tokens": 200,
-    "temperature": 0.7,
+    "temperature": 0.1,
     "top_p": 0.9,
     "repetition_penalty": 1.4,
 }
