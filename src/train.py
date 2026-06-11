@@ -1,17 +1,17 @@
 import os
 import torch
-from trl import SFTTrainer, SFTConfig
 
 from src.model_loader import load_model
 from src.dataset_loader import load_dataset, format_dataset
 from src.config import DATA_PATH, LORA_CONFIG
 
 
-
 def train_model(config):
 
-    # lazy import
-    import unsloth  # only when training starts
+    # lazy import only when training starts
+    import unsloth
+    from trl import SFTTrainer, SFTConfig
+    
     if not config.get("use_gpu", False):
         print("⚠️ GPU training disabled (mock mode)")
         return True
@@ -79,6 +79,7 @@ def train_model(config):
         max_length=config["max_seq_length"],
         dataloader_num_workers=0,
         packing=False,
+        eos_token=tokenizer.eos_token,
     )
 
     if tokenizer.eos_token is None:
@@ -102,3 +103,22 @@ def train_model(config):
     print("\n======== Model saved successfully! ========\n")
 
     return True
+
+# # For Colab
+# # ---------------------------------------------------
+# if __name__ == "__main__":
+#     config = {
+#         "model_name": "meta-llama/Llama-3.2-1B",
+#         "max_seq_length": 512,
+#         "load_in_4bit": False,
+#         "r": 16,
+#         "lora_alpha": 16,
+#         "lora_dropout": 0.05,
+#         "batch_size": 4,
+#         "gradient_accumulation_steps": 4,
+#         "epochs": 1,
+#         "learning_rate": 2e-4,
+#         "optim": "adamw_8bit",
+#         "use_gpu": True,
+#     }
+#     train_model(config)

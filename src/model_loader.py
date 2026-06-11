@@ -7,9 +7,9 @@ def load_model(
         lora_dropout: float,
         ):
 
-    import torch
     import unsloth
     from unsloth import FastLanguageModel
+    import torch
 
     device_map="cuda" if torch.cuda.is_available() else "cpu"
 
