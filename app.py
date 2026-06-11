@@ -25,8 +25,8 @@ with tab1:
 with tab2:
     render_inference_panel()
 
-if not torch.cuda.is_available():
-    st.error("🚨 No GPU detected. Training will not work with Unsloth.")
+# if not torch.cuda.is_available():
+#     st.error("🚨 No GPU detected. Training will not work with Unsloth.")
 
 # --------------------------------------------------------------------------------
 st.markdown("""

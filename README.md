@@ -25,6 +25,26 @@
 ☑️ Model evaluation and benchmarking  
 ☑️ Experiment tracking and versioning  
 
+
+```
+STREAMLIT (local laptop)
+    ↓
+job_submitter.py
+    ↓
+Google Drive:
+/LLMs_studio/jobs/job_x.json
+    ↓
+COLAB WORKER
+    ↓
+/content/LLMs_Fine_Tuning_Studio (code)
+/content/drive/... (data)
+    ↓
+train_model()
+    ↓
+/LLMs_studio/models/job_x
+```
+
+
 ## 🛠️ Tech Stack
 
 ✔️ Python  

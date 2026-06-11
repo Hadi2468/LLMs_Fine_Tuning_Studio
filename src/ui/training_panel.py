@@ -1,9 +1,13 @@
 import json
 import streamlit as st
+import time
+from pathlib import Path
+from dataclasses import asdict
 
 from src.train import train_model
 from src.config import DATA_PATH
 from src.training_config.training_config import TrainingConfig
+from src.bridge.job_submitter import submit_job
 
 
 def render_training_panel():
@@ -26,10 +30,20 @@ def render_training_panel():
 
         st.json(data[:2])
 
-        save_path = DATA_PATH["data_dir"] / "train_data.json"
+        job_id = f"job_{int(time.time())}"
 
-        with open(save_path, "w") as f:
+        job_dataset_dir = Path(r"G:\My Drive\LLMs_studio\datasets")
+        job_dataset_dir.mkdir(parents=True, exist_ok=True)
+
+        dataset_path = job_dataset_dir / f"{job_id}_dataset.json"
+
+        with open(dataset_path, "w") as f:
             json.dump(data, f, indent=2)
+
+        st.session_state["dataset_path"] = str(dataset_path)
+        st.session_state["job_id"] = job_id
+
+        st.success(f"{len(data)} samples loaded for job: {job_id}")
 
         st.session_state["dataset_ready"] = True
 
@@ -61,11 +75,13 @@ def render_training_panel():
             st.warning("Please upload dataset first!")
             return
         
-        config.dataset_path = str(DATA_PATH["data_dir"] / "train_data.json")
+        config.dataset_path = st.session_state.get("dataset_path")
+        config.job_id = st.session_state.get("job_id")
         
         with st.spinner("Training in progress... (this may take a while)"):
 
-            train_model(config)
+            job_id = submit_job(asdict(config))
+            st.success(f"\n🚀 ----- Job sent to Colab: {job_id} >>>>>>\n")
 
         st.success("Training completed successfully!")
 

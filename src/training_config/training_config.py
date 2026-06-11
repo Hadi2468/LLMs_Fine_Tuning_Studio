@@ -17,3 +17,4 @@ class TrainingConfig:
     optim: str
 
     dataset_path: str | None = None
+    job_id: str | None = None
