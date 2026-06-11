@@ -6,6 +6,7 @@ from dataclasses import asdict
 
 from src.training_config.training_config import TrainingConfig
 from src.bridge.job_submitter import submit_job
+from src.config import DATA_PATH
 
 
 def render_training_panel():
@@ -29,14 +30,15 @@ def render_training_panel():
 
         job_id = f"job_{int(time.time())}"
 
-        job_dataset_dir = Path(r"G:\My Drive\LLMs_studio\datasets")
-        job_dataset_dir.mkdir(parents=True, exist_ok=True)
+        dataset_dir = DATA_PATH["data_dir"] / "jobs_data"
+        dataset_dir.mkdir(parents=True, exist_ok=True)
 
-        dataset_path = job_dataset_dir / f"{job_id}_dataset.json"
+        dataset_path = dataset_dir / f"{job_id}_dataset.json"
 
         with open(dataset_path, "w") as f:
             json.dump(data, f, indent=2)
 
+        # store for later use
         st.session_state["dataset_path"] = str(dataset_path)
         st.session_state["job_id"] = job_id
         st.session_state["dataset_ready"] = True
@@ -79,10 +81,13 @@ def render_training_panel():
             "status": "pending",
             "config": {
                 **asdict(config),
-                "dataset_path": dataset_path,
+                "dataset_path": str(dataset_path),
                 "job_id": job_id
             }
         }
+        
+        st.write(config)
+        st.write(asdict(config))
 
         job_id = submit_job(job)
 
