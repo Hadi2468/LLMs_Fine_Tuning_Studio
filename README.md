@@ -11,6 +11,8 @@
 ✅️ Google Colab GPU training workflow  
 ✅️ Clean and scalable project structure  
 
+![Output Dashboard View](assets/dashboard.png) 
+
 ## ❯❯❯ Roadmap
 
 ☑️ Streamlit-based training dashboard  
