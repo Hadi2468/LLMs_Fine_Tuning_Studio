@@ -35,8 +35,17 @@ def render_training_panel():
         job_dataset_dir = Path(r"G:\My Drive\LLMs_studio\datasets")
         job_dataset_dir.mkdir(parents=True, exist_ok=True)
 
-        dataset_path = job_dataset_dir / f"{job_id}_dataset.json"
+        job = {
+            "job_id": job_id,
+            "status": "pending",
+            "config": {
+                **config.__dict__,
+                "dataset_path": str(dataset_path)
+            }
+        }
 
+        dataset_path = job_dataset_dir / f"{job_id}_dataset.json"
+        
         with open(dataset_path, "w") as f:
             json.dump(data, f, indent=2)
 
