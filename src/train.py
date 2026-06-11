@@ -1,64 +1,62 @@
-import os
 import torch
 
 from src.model_loader import load_model
 from src.dataset_loader import load_dataset, format_dataset
-from src.config import DATA_PATH, LORA_CONFIG
+from src.config import DATA_PATH
 
 
-def train_model(config):
+def train_model(config: dict):
 
     # lazy import only when training starts
     import unsloth
     from trl import SFTTrainer, SFTConfig
     
-    if not config.get("use_gpu", False):
-        print("⚠️ GPU training disabled (mock mode)")
-        return True
+    if not torch.cuda.is_available():
+        print("⚠️ No GPU detected. Aborting training.")
+        return False
 
-    # Set default values for missing configuration parameters
-    config.setdefault("weight_decay", 0.01)
-    config.setdefault("warmup_steps", 10)
-    config.setdefault("logging_steps", 5)
+    # Check for required configuration parameters
+    required_keys = [
+        "model_name",
+        "max_seq_length",
+        "load_in_4bit",
+        "r",
+        "lora_alpha",
+        "lora_dropout",
+        "batch_size",
+        "gradient_accumulation_steps",
+        "epochs",
+        "learning_rate",
+        "optim",
+    ]
 
-    # Print configuration
-    print("\n======== Training Configuration ========\n")
-    for key, value in config.items():
-        print(f"{key}: {value}")
-    print()
-
-    lora_config = {
-        "r": config.get("r", LORA_CONFIG["r"]),
-        "lora_alpha": config.get("lora_alpha", LORA_CONFIG["lora_alpha"]),
-        "lora_dropout": config.get("lora_dropout", LORA_CONFIG["lora_dropout"]),
-    }
+    for k in required_keys:
+        if k not in config:
+            raise ValueError(f"Missing config key: {k}")
+        
+    print("\n======== 🚀 Starting training... ========")
+    print(f"Model: {config['model_name']}")
     
     # Load model and tokenizer
     model, tokenizer = load_model(
         model_name=config["model_name"],
         max_seq_length=config["max_seq_length"],
         load_in_4bit=config["load_in_4bit"],
-        r=lora_config["r"],
-        lora_alpha=lora_config["lora_alpha"],
-        lora_dropout=lora_config["lora_dropout"],
+        r=config["r"],
+        lora_alpha=config["lora_alpha"],
+        lora_dropout=config["lora_dropout"],
     )
 
-    # Data and model directories
-    data_path = DATA_PATH["data_dir"] / "train_data.json"
+    if tokenizer.eos_token is None:
+        tokenizer.eos_token = "</s>"
+    
+    # Load and format dataset
+    data_path = config.get("dataset_path", DATA_PATH["data_dir"] / "train_data.json")
+    dataset = load_dataset(data_path)
+    formatted_dataset = format_dataset(dataset, tokenizer)
     output_dir = str(DATA_PATH["output_dir"])
     model_path = str(DATA_PATH["model_dir"])
-    log_dir = str(DATA_PATH["log_dir"])
-
-    os.makedirs(output_dir, exist_ok=True)
-    os.makedirs(model_path, exist_ok=True)
-    os.makedirs(log_dir, exist_ok=True)
-
-    # Load dataset
-    dataset = load_dataset(data_path)
-
-    # Format dataset
-    formatted_dataset = format_dataset(dataset, tokenizer)  
-    print("\n======== Dataset formatted successfully! ========\n")
+    print(f"\n======== Dataset size: {len(formatted_dataset)} ========\n")
 
     # Training configuration
     training_args = SFTConfig(
@@ -79,11 +77,7 @@ def train_model(config):
         max_length=config["max_seq_length"],
         dataloader_num_workers=0,
         packing=False,
-        eos_token=tokenizer.eos_token,
     )
-
-    if tokenizer.eos_token is None:
-        tokenizer.eos_token = "</s>"
 
     # Trainer
     trainer = SFTTrainer(
@@ -92,7 +86,7 @@ def train_model(config):
         train_dataset=formatted_dataset,
         args=training_args,
     )
-    print("\n======== Trainer initialized successfully! ========\n")
+    print("\n======== Trainer started ... ========\n")
 
     # Train the fine-tuned model
     trainer.train()
@@ -100,8 +94,8 @@ def train_model(config):
     # Save the fine-tuned model
     model.save_pretrained(model_path)
     tokenizer.save_pretrained(model_path)
-    print("\n======== Model saved successfully! ========\n")
-
+    print("\n======== ✅ Training completed and model saved! ========\n")
+    
     return True
 
 # # For Colab
