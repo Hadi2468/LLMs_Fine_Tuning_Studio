@@ -30,7 +30,7 @@ def render_training_panel():
 
         job_id = f"job_{int(time.time())}"
 
-        dataset_dir = DATA_PATH["data_dir"] / "jobs_data"
+        dataset_dir = DATA_PATH["data_dir"] / "jobs"
         dataset_dir.mkdir(parents=True, exist_ok=True)
 
         dataset_path = dataset_dir / f"{job_id}_dataset.json"
