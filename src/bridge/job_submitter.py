@@ -10,7 +10,7 @@ JOB_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def submit_job(config: dict):
-    job_id = f"job_{int(time.time())}"
+    job_id = config["job_id"]
 
     job = {
         "job_id": job_id,

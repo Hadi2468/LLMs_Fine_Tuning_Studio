@@ -11,6 +11,15 @@ from src.config import DATA_PATH, GOOGLE_DRIVE_PATH
 
 def render_training_panel():
 
+    if "dataset_ready" not in st.session_state:
+        st.session_state["dataset_ready"] = False
+
+    if "job_id" not in st.session_state:
+        st.session_state["job_id"] = None
+
+    if "dataset_file" not in st.session_state:
+        st.session_state["dataset_file"] = None
+    
     st.header("🚀 Fine-Tuning Panel")
 
     # -------------------------
@@ -21,7 +30,7 @@ def render_training_panel():
         type=["json"]
     )
 
-    if uploaded_file:
+    if uploaded_file and not st.session_state["dataset_ready"]:
 
         data = json.load(uploaded_file)
 
@@ -30,7 +39,8 @@ def render_training_panel():
 
         job_id = f"job_{int(time.time())}"
 
-        dataset_dir = DATA_PATH["data_dir"] / "jobs"
+        dataset_dir = DATA_PATH["data_dir"] / "datasets"
+        st.write("LOCAL DATASET DIR:", dataset_dir)
         dataset_dir.mkdir(parents=True, exist_ok=True)
 
         dataset_path = dataset_dir / f"{job_id}_dataset.json"
@@ -42,6 +52,7 @@ def render_training_panel():
             GOOGLE_DRIVE_PATH["datasets"]
             / f"{job_id}_dataset.json"
         )
+        st.write("GDRIVE DATASET:", gdrive_dataset_path)
 
         gdrive_dataset_path.parent.mkdir(
             parents=True,
@@ -52,7 +63,7 @@ def render_training_panel():
             json.dump(data, f, indent=2)
 
         # store for later use
-        st.session_state["dataset_path"] = str(dataset_path)
+        st.session_state["dataset_file"] = (f"{job_id}_dataset.json")
         st.session_state["job_id"] = job_id
         st.session_state["dataset_ready"] = True
 
@@ -86,20 +97,18 @@ def render_training_panel():
             st.warning("Please upload dataset first!")
             return
 
-        dataset_path = st.session_state["dataset_path"]
         job_id = st.session_state["job_id"]
+        dataset_file = st.session_state["dataset_file"]
 
         config_dict = {
             **asdict(config),
             "job_id": job_id,
-            "dataset_file": f"{job_id}_dataset.json"
+            "dataset_file": dataset_file,
         }
 
         job_id = submit_job(config_dict)
         
-        st.write(config)
-        # st.write(asdict(config))
-
+        st.write("Config:", config)
 
         st.success(f"🚀 Job sent to Colab: {job_id}")
         st.session_state["model_ready"] = True

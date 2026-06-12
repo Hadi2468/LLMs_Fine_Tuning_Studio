@@ -15,6 +15,3 @@ class TrainingConfig:
     epochs: int
     learning_rate: float
     optim: str
-
-    dataset_path: str | None = None
-    job_id: str | None = None
