@@ -15,6 +15,21 @@ DATA_PATH = {
     "log_dir": ROOT_DIR / "output" / "logs",
 }
 
+# =========================================================
+# GOOGLE DRIVE
+# =========================================================
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+GOOGLE_DRIVE_ROOT = Path(
+    r"G:\My Drive\LLMs_studio"
+)
+
+GOOGLE_DRIVE_PATH = {
+    "jobs": GOOGLE_DRIVE_ROOT / "jobs",
+    "datasets": GOOGLE_DRIVE_ROOT / "datasets",
+    "models": GOOGLE_DRIVE_ROOT / "models",
+    "logs": GOOGLE_DRIVE_ROOT / "logs",
+}
 
 # =========================================================
 # MODEL CATALOG

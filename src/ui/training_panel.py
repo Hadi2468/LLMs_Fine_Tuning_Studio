@@ -6,7 +6,7 @@ from dataclasses import asdict
 
 from src.training_config.training_config import TrainingConfig
 from src.bridge.job_submitter import submit_job
-from src.config import DATA_PATH
+from src.config import DATA_PATH, GOOGLE_DRIVE_PATH
 
 
 def render_training_panel():
@@ -36,6 +36,19 @@ def render_training_panel():
         dataset_path = dataset_dir / f"{job_id}_dataset.json"
 
         with open(dataset_path, "w") as f:
+            json.dump(data, f, indent=2)
+        
+        gdrive_dataset_path = (
+            GOOGLE_DRIVE_PATH["datasets"]
+            / f"{job_id}_dataset.json"
+        )
+
+        gdrive_dataset_path.parent.mkdir(
+            parents=True,
+            exist_ok=True
+        )
+
+        with open(gdrive_dataset_path, "w") as f:
             json.dump(data, f, indent=2)
 
         # store for later use
@@ -76,20 +89,17 @@ def render_training_panel():
         dataset_path = st.session_state["dataset_path"]
         job_id = st.session_state["job_id"]
 
-        job = {
+        config_dict = {
+            **asdict(config),
             "job_id": job_id,
-            "status": "pending",
-            "config": {
-                **asdict(config),
-                "dataset_path": str(dataset_path),
-                "job_id": job_id
-            }
+            "dataset_file": f"{job_id}_dataset.json"
         }
+
+        job_id = submit_job(config_dict)
         
         st.write(config)
-        st.write(asdict(config))
+        # st.write(asdict(config))
 
-        job_id = submit_job(job)
 
         st.success(f"🚀 Job sent to Colab: {job_id}")
         st.session_state["model_ready"] = True
