@@ -110,14 +110,24 @@ def train_model(config: dict):
         {}
     )
 
+    history = trainer.state.log_history
+
+    clean_history = [
+        {
+            "loss": x.get("loss"),
+            "learning_rate": x.get("learning_rate"),
+            "epoch": x.get("epoch")
+        }
+        for x in history
+        if "loss" in x
+    ]
+
     save_train_metrics(
         job_id=job_id,
         metrics={
-            "loss": metrics.get("loss"),
-            "learning_rate": metrics.get("learning_rate"),
-            "epoch": metrics.get("epoch")
-        },
-        base_dir="/content/drive/MyDrive/LLMs_studio"
+            "final_loss": clean_history[-1]["loss"] if clean_history else None,
+            "history": clean_history
+        }
     )
 
      # Save the fine-tuned model
