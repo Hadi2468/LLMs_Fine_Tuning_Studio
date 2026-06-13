@@ -1,10 +1,13 @@
 import torch
 from pathlib import Path
+import json
+import time
+from datetime import datetime
 
 from src.model_loader import load_model
 from src.dataset_loader import load_dataset, format_dataset
 from src.config import DATA_PATH
-
+from src.metrics_logger import save_train_metrics
 
 def train_model(config: dict):
 
@@ -102,9 +105,23 @@ def train_model(config: dict):
     # Train the fine-tuned model
     trainer.train()
 
-    # Save the fine-tuned model
+    metrics = next(
+        (x for x in reversed(trainer.state.log_history) if "loss" in x),
+        {}
+    )
+
+    save_train_metrics(
+        job_id=job_id,
+        metrics={
+            "loss": metrics.get("loss"),
+            "learning_rate": metrics.get("learning_rate"),
+            "epoch": metrics.get("epoch")
+        }
+    )
+
+     # Save the fine-tuned model
     model.save_pretrained(str(model_path))
     tokenizer.save_pretrained(str(model_path))
     print("\n======== ✅ Training completed and model saved! ========\n")
-    
+
     return True
