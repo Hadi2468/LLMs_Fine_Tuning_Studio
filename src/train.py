@@ -2,24 +2,28 @@ import torch
 from pathlib import Path
 import json
 import time
-from datetime import datetime
 
 from src.model_loader import load_model
 from src.dataset_loader import load_dataset, format_dataset
 from src.config import DATA_PATH
 from src.metrics_logger import save_train_metrics
 
+
 def train_model(config: dict):
 
-    # lazy import only when training starts
     import unsloth
     from trl import SFTTrainer, SFTConfig
-    
+
+    # -------------------------
+    # GPU CHECK
+    # -------------------------
     if not torch.cuda.is_available():
         print("⚠️ No GPU detected. Aborting training.")
         return False
 
-    # Check for required configuration parameters
+    # -------------------------
+    # VALIDATE CONFIG
+    # -------------------------
     required_keys = [
         "model_name",
         "max_seq_length",
@@ -39,11 +43,28 @@ def train_model(config: dict):
     for k in required_keys:
         if k not in config:
             raise ValueError(f"Missing config key: {k}")
-        
-    print("\n--=>--=>--=>--=> 🚀 Starting training... --=>--=>--=>--=>")
-    print(f"Model: {config['model_name']}")
-    
-    # Load model and tokenizer
+
+    print("\n🚀 Starting training...")
+
+    job_id = config["job_id"]
+
+    # -------------------------
+    # FIXED ROOT PATH (IMPORTANT)
+    # -------------------------
+    gdrive_root = Path(r"G:\My Drive\LLMs_studio")
+
+    output_dir = gdrive_root / "logs" / job_id
+    model_path = gdrive_root / "models" / job_id
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    model_path.mkdir(parents=True, exist_ok=True)
+
+    print("📁 Logs:", output_dir)
+    print("📁 Model:", model_path)
+
+    # -------------------------
+    # LOAD MODEL
+    # -------------------------
     model, tokenizer = load_model(
         model_name=config["model_name"],
         max_seq_length=config["max_seq_length"],
@@ -55,24 +76,23 @@ def train_model(config: dict):
 
     if tokenizer.eos_token is None:
         tokenizer.eos_token = "</s>"
-    
-    # Load and format dataset
-    data_path = config.get("dataset_path", DATA_PATH["data_dir"] / "train_data.json")
+
+    # -------------------------
+    # DATASET
+    # -------------------------
+    data_path = config.get(
+        "dataset_path",
+        DATA_PATH["data_dir"] / "train_data.json"
+    )
+
     dataset = load_dataset(data_path)
     formatted_dataset = format_dataset(dataset, tokenizer)
 
-    # Create output path
-    print(f"\n--------- Dataset size: {len(formatted_dataset)} ---------\n")
-    job_id = config["job_id"]
-    gdrive_root = Path("/content/drive/MyDrive/LLMs_studio")
-    output_dir = (gdrive_root / "logs" / job_id)
-    model_path = (gdrive_root / "models" / job_id)
-    output_dir.mkdir(parents=True, exist_ok=True)
-    model_path.mkdir(parents=True, exist_ok=True)
-    print("📁 Output:", output_dir)
-    print("📁 Model :", model_path)
+    print(f"📊 Dataset size: {len(formatted_dataset)}")
 
-    # Training configuration
+    # -------------------------
+    # TRAINING CONFIG
+    # -------------------------
     training_args = SFTConfig(
         output_dir=str(output_dir),
         per_device_train_batch_size=config["batch_size"],
@@ -84,7 +104,7 @@ def train_model(config: dict):
         fp16=not torch.cuda.is_bf16_supported(),
         bf16=torch.cuda.is_bf16_supported(),
         logging_steps=config.get("logging_steps", 5),
-        save_strategy="no",         # "epoch"
+        save_strategy="no",
         report_to="none",
         optim=config["optim"],
         dataset_text_field="text",
@@ -93,46 +113,69 @@ def train_model(config: dict):
         packing=False,
     )
 
-    # Trainer
+    # -------------------------
+    # TRAINER
+    # -------------------------
     trainer = SFTTrainer(
         model=model,
         processing_class=tokenizer,
         train_dataset=formatted_dataset,
         args=training_args,
     )
-    print("\n>>>>>>> Trainer started ... >>>>>> \n")
 
-    # Train the fine-tuned model
+    print("🔥 Training started...")
+
     trainer.train()
 
-    metrics = next(
-        (x for x in reversed(trainer.state.log_history) if "loss" in x),
-        {}
-    )
-
+    # -------------------------
+    # SAFE LOG EXTRACTION
+    # -------------------------
     history = trainer.state.log_history
 
-    clean_history = [
-        {
-            "loss": x.get("loss"),
-            "learning_rate": x.get("learning_rate"),
-            "epoch": x.get("epoch")
-        }
+    print("📊 log_history size:", len(history))
+
+    losses = [
+        x.get("loss") or x.get("train_loss")
         for x in history
-        if "loss" in x
+        if x.get("loss") is not None or x.get("train_loss") is not None
     ]
 
-    save_train_metrics(
-        job_id=job_id,
-        metrics={
-            "final_loss": clean_history[-1]["loss"] if clean_history else None,
-            "history": clean_history
-        }
-    )
+    losses = [l for l in losses if l is not None]
 
-     # Save the fine-tuned model
+    metrics_payload = {
+        "final_loss": losses[-1] if losses else None,
+        "min_loss": min(losses) if losses else None,
+        "num_logs": len(history),
+        "history": [
+            {
+                "loss": x.get("loss") or x.get("train_loss"),
+                "learning_rate": x.get("learning_rate"),
+                "epoch": x.get("epoch")
+            }
+            for x in history
+            if (x.get("loss") is not None or x.get("train_loss") is not None)
+        ]
+    }
+
+    print("📊 METRICS READY")
+
+    # -------------------------
+    # SAVE MODEL
+    # -------------------------
     model.save_pretrained(str(model_path))
     tokenizer.save_pretrained(str(model_path))
-    print("\n======== ✅ Training completed and model saved! ========\n")
+
+    print("💾 Model saved")
+
+    # -------------------------
+    # SAVE METRICS (CRITICAL FIX)
+    # -------------------------
+    save_train_metrics(
+        job_id=job_id,
+        metrics=metrics_payload,
+        base_dir=r"G:\My Drive\LLMs_studio"
+    )
+
+    print("\n✅ Training completed successfully!")
 
     return True

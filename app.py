@@ -26,6 +26,18 @@ st.title("🧠 LLMs Fine-Tuning Studio")
 render_sidebar()
 
 # -----------------------------
+# Sidebar footer
+# -----------------------------
+st.sidebar.markdown("---")
+st.sidebar.markdown("""
+**🧑🏻‍💻 Author**  
+**Hadi Hosseini**  
+AI/ML Engineer  
+[![GitHub](https://img.shields.io/badge/GitHub-100000?style=flat&logo=github&logoColor=white)](https://github.com/Hadi2468/LLMs_Fine_Tuning_Studio)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/hadi468)
+""")
+
+# -----------------------------
 # Tabs
 # -----------------------------
 tab1, tab2, tab3 = st.tabs([
@@ -161,16 +173,3 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
-
-# -----------------------------
-# Sidebar footer
-# -----------------------------
-st.sidebar.markdown("---")
-st.sidebar.markdown("""
-**🧑🏻‍💻 Author**  
-**Hadi Hosseini**  
-AI/ML Engineer  
-[![GitHub](https://img.shields.io/badge/GitHub-100000?style=flat&logo=github&logoColor=white)](https://github.com/Hadi2468/LLMs_Fine_Tuning_Studio)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/hadi468)
-""")
