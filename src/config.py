@@ -20,13 +20,13 @@ DATA_PATH = {
 # =========================================================
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-GOOGLE_DRIVE_ROOT = Path("/content/drive/MyDrive/LLMs_studio")
-
+COLAB_GDRIVE_ROOT = Path("/content/drive/MyDrive/LLMs_studio")
+LOCAL_GDRIVE_ROOT = Path(r"G:\My Drive\LLMs_studio")
 GOOGLE_DRIVE_PATH = {
-    "jobs": GOOGLE_DRIVE_ROOT / "jobs",
-    "datasets": GOOGLE_DRIVE_ROOT / "datasets",
-    "models": GOOGLE_DRIVE_ROOT / "models",
-    "logs": GOOGLE_DRIVE_ROOT / "logs",
+    "jobs": LOCAL_GDRIVE_ROOT / "jobs",
+    "datasets": LOCAL_GDRIVE_ROOT / "datasets",
+    "models": LOCAL_GDRIVE_ROOT / "models",
+    "logs": LOCAL_GDRIVE_ROOT / "logs",
 }
 
 # =========================================================

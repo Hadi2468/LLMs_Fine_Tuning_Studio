@@ -92,7 +92,7 @@ def render_training_panel():
     # Training button
     # -------------------------
     if st.button("🚀 Start Fine-Tuning", use_container_width=True):
-
+        
         if not st.session_state.get("dataset_ready"):
             st.warning("Please upload dataset first!")
             return
@@ -111,4 +111,5 @@ def render_training_panel():
         st.write("Config:", config)
 
         st.success(f"🚀 Job sent to Colab: {job_id}")
+        st.session_state["dataset_ready"] = False
         st.session_state["model_ready"] = True

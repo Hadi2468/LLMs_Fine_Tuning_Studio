@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from src.ui.sidebar import render_sidebar
 from src.ui.training_panel import render_training_panel
 from src.ui.inference_panel import render_inference_panel
+from src.config import GOOGLE_DRIVE_PATH
 
 
 # --------------------------------------------------
@@ -21,11 +22,9 @@ st.set_page_config(
 # --------------------------------------------------
 # GLOBAL PATHS
 # --------------------------------------------------
-GDRIVE_ROOT = Path(r"G:\My Drive\LLMs_studio")
-
-LOG_DIR = GDRIVE_ROOT / "logs"
-MODEL_DIR = GDRIVE_ROOT / "models"
-JOB_DIR = GDRIVE_ROOT / "jobs"
+LOG_DIR = GOOGLE_DRIVE_PATH["logs"]
+MODEL_DIR = GOOGLE_DRIVE_PATH["models"]
+JOB_DIR = GOOGLE_DRIVE_PATH["jobs"]
 
 
 # --------------------------------------------------

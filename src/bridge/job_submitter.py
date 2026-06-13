@@ -1,7 +1,8 @@
 import json
 from pathlib import Path
+from src.config import GOOGLE_DRIVE_PATH
 
-JOB_DIR = Path(r"G:\My Drive\LLMs_studio\jobs")
+JOB_DIR = GOOGLE_DRIVE_PATH["jobs"]
 JOB_DIR.mkdir(parents=True, exist_ok=True)
 
 

@@ -38,6 +38,7 @@ def train_model(config: dict):
         "optim",
         "job_id",
         "dataset_path",
+        "dataset_file",
     ]
 
     for k in required_keys:
@@ -82,14 +83,10 @@ def train_model(config: dict):
     # -------------------------
     # DATASET
     # -------------------------
-    data_path = config.get(
-        "dataset_path",
-        DATA_PATH["data_dir"] / "train_data.json"
-    )
-
+    dataset_file = config["dataset_file"]
+    data_path = (Path("/content/drive/MyDrive/LLMs_studio/datasets") / dataset_file)
     dataset = load_dataset(data_path)
     formatted_dataset = format_dataset(dataset, tokenizer)
-
     print(f"📊 Dataset size: {len(formatted_dataset)}")
 
     # -------------------------
@@ -175,7 +172,7 @@ def train_model(config: dict):
     save_train_metrics(
         job_id=job_id,
         metrics=metrics_payload,
-        base_dir="/content/drive/MyDrive/LLMs_studio"
+        logs_root=gdrive_root / "logs"
     )
 
     print("\n✅ Training completed successfully!")
