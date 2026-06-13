@@ -175,7 +175,7 @@ def train_model(config: dict):
     save_train_metrics(
         job_id=job_id,
         metrics=metrics_payload,
-        base_dir=r"G:\My Drive\LLMs_studio"
+        base_dir="/content/drive/MyDrive/LLMs_studio"
     )
 
     print("\n✅ Training completed successfully!")

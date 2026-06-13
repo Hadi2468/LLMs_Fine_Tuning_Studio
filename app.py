@@ -1,4 +1,3 @@
-import torch
 import streamlit as st
 from pathlib import Path
 import json
@@ -9,88 +8,124 @@ from src.ui.training_panel import render_training_panel
 from src.ui.inference_panel import render_inference_panel
 
 
-# -----------------------------
-# Page config
-# -----------------------------
+# --------------------------------------------------
+# PAGE CONFIG (MUST BE FIRST STREAMLIT COMMAND)
+# --------------------------------------------------
 st.set_page_config(
     page_title="LLMs Fine-Tuning Studio",
     page_icon="🧠",
     layout="wide"
 )
 
+
+# --------------------------------------------------
+# GLOBAL PATHS
+# --------------------------------------------------
+GDRIVE_ROOT = Path(r"G:\My Drive\LLMs_studio")
+
+LOG_DIR = GDRIVE_ROOT / "logs"
+MODEL_DIR = GDRIVE_ROOT / "models"
+JOB_DIR = GDRIVE_ROOT / "jobs"
+
+
+# --------------------------------------------------
+# CUSTOM CSS
+# --------------------------------------------------
+st.markdown("""
+<style>
+
+/* Navigation buttons */
+div[role="radiogroup"] label {
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    padding: 12px 20px !important;
+}
+
+/* General font size */
+html, body, [class*="css"] {
+    font-size: 18px;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+
+# --------------------------------------------------
+# TITLE
+# --------------------------------------------------
 st.title("🧠 LLMs Fine-Tuning Studio")
 
-# -----------------------------
-# Sidebar
-# -----------------------------
+
+# --------------------------------------------------
+# NAVIGATION
+# --------------------------------------------------
+page = st.radio(
+    "",
+    [
+        "🚀 Training",
+        "📊 Training Results",
+        "💬 Chat Inference"
+    ],
+    horizontal=True
+)
+
+
+# --------------------------------------------------
+# SIDEBAR
+# --------------------------------------------------
 render_sidebar()
 
-# -----------------------------
-# Sidebar footer
-# -----------------------------
 st.sidebar.markdown("---")
 st.sidebar.markdown("""
 **🧑🏻‍💻 Author**  
 **Hadi Hosseini**  
-AI/ML Engineer  
-[![GitHub](https://img.shields.io/badge/GitHub-100000?style=flat&logo=github&logoColor=white)](https://github.com/Hadi2468/LLMs_Fine_Tuning_Studio)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/hadi468)
+AI/ML Engineer
 """)
 
-# -----------------------------
-# Tabs
-# -----------------------------
-tab1, tab2, tab3 = st.tabs([
-    "🚀 Training",
-    "📊 Training Results",
-    "💬 Chat Inference"
-])
 
+# ==================================================
+# PAGE 1 — TRAINING
+# ==================================================
+if page == "🚀 Training":
 
-# =============================
-# TAB 1 — TRAINING
-# =============================
-with tab1:
     render_training_panel()
 
 
-# =============================
-# TAB 2 — TRAINING RESULTS
-# =============================
-with tab2:
+# ==================================================
+# PAGE 2 — TRAINING RESULTS
+# ==================================================
+elif page == "📊 Training Results":
 
-    st.subheader("📊 Training Runs Explorer")
-
-    LOG_DIR = Path(r"G:\My Drive\LLMs_studio\logs")
+    st.subheader("📊 Training Results")
 
     if not LOG_DIR.exists():
-        st.error("Logs directory not found.")
+        st.error(f"Logs directory not found:\n{LOG_DIR}")
         st.stop()
 
-    jobs = sorted([p.name for p in LOG_DIR.glob("job_*") if p.is_dir()])
+    jobs = sorted(
+        [p.name for p in LOG_DIR.glob("job_*") if p.is_dir()],
+        reverse=True
+    )
 
     if not jobs:
-        st.warning("No training runs found yet.")
+        st.warning("No training runs found.")
         st.stop()
 
-    # store selected job globally
-    st.session_state["selected_job"] = st.selectbox(
+    selected_job = st.selectbox(
         "Select Training Job",
         jobs
     )
 
-    selected_job = st.session_state["selected_job"]
+    st.session_state["selected_job"] = selected_job
 
     metrics_file = LOG_DIR / selected_job / "train_metrics.json"
 
-    st.divider()
+    st.write(f"📁 Metrics File: `{metrics_file}`")
 
-    # -----------------------------
-    # Load metrics safely
-    # -----------------------------
     if metrics_file.exists():
 
         try:
+
             with open(metrics_file, "r") as f:
                 data = json.load(f)
 
@@ -100,76 +135,90 @@ with tab2:
 
             col1, col2, col3 = st.columns(3)
 
-            col1.metric("Loss", metrics.get("loss", "N/A"))
-            col2.metric("Learning Rate", metrics.get("learning_rate", "N/A"))
-            col3.metric("Epoch", metrics.get("epoch", "N/A"))
+            col1.metric(
+                "Final Loss",
+                metrics.get("final_loss", "N/A")
+            )
 
-            st.divider()
-            st.subheader("📄 Full JSON")
-            st.json(data)
+            col2.metric(
+                "Min Loss",
+                metrics.get("min_loss", "N/A")
+            )
 
-            # -----------------------------
-            # Loss curve
-            # -----------------------------
+            col3.metric(
+                "Logged Steps",
+                metrics.get("num_logs", "N/A")
+            )
+
+            # --------------------------------
+            # LOSS CURVE
+            # --------------------------------
             history = metrics.get("history", [])
 
             if history:
-                st.subheader("📈 Loss Curve")
 
-                losses = [x.get("loss") for x in history if x.get("loss") is not None]
-                steps = list(range(len(losses)))
+                losses = [
+                    x.get("loss")
+                    for x in history
+                    if x.get("loss") is not None
+                ]
 
-                fig, ax = plt.subplots()
-                ax.plot(steps, losses)
-                ax.set_xlabel("Step")
-                ax.set_ylabel("Loss")
-                ax.set_title("Training Loss Curve")
+                if losses:
 
-                st.pyplot(fig)
+                    st.subheader("📈 Training Loss Curve")
 
-            else:
-                st.info("No training history available for plotting.")
+                    fig, ax = plt.subplots()
+
+                    ax.plot(range(len(losses)), losses)
+
+                    ax.set_xlabel("Log Step")
+                    ax.set_ylabel("Loss")
+                    ax.set_title("Training Loss")
+
+                    st.pyplot(fig)
+
+            st.divider()
+
+            with st.expander("📄 View Raw JSON"):
+                st.json(data)
 
         except Exception as e:
-            st.error(f"Failed to read metrics file: {e}")
+            st.error(f"Failed to load metrics:\n{e}")
 
     else:
-        st.warning("No metrics file found for this job.")
+        st.warning(
+            f"No train_metrics.json found for {selected_job}"
+        )
 
 
-# =============================
-# TAB 3 — INFERENCE
-# =============================
-with tab3:
+# ==================================================
+# PAGE 3 — CHAT INFERENCE
+# ==================================================
+elif page == "💬 Chat Inference":
 
-    selected_job = st.session_state.get("selected_job", None)
+    selected_job = st.session_state.get("selected_job")
 
     if not selected_job:
-        st.warning("⚠️ Please select a training job in the Training Results tab first.")
-        st.stop()
 
-    model_path = str(
-        Path(r"G:\My Drive\LLMs_studio\models") / selected_job
-    )
+        st.warning(
+            "Please select a training job first from "
+            "'Training Results'."
+        )
 
-    if st.button("🚀 Load selected model for chat"):
-        st.session_state["model_path"] = model_path
-        st.success(f"Model loaded: {selected_job}")
+    else:
 
-    # Render chat UI
-    render_inference_panel()
+        model_path = MODEL_DIR / selected_job
 
+        st.write(f"📁 Model Path: `{model_path}`")
 
-# -----------------------------
-# UI styling
-# -----------------------------
-st.markdown(
-    """
-    <style>
-    html, body, [class*="css"] {
-        font-size: 18px;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+        if st.button("🚀 Load Selected Model"):
+
+            st.session_state["model_path"] = str(model_path)
+
+            st.success(
+                f"Loaded model: {selected_job}"
+            )
+
+        st.divider()
+
+        render_inference_panel()

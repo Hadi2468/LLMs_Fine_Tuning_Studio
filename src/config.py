@@ -20,9 +20,7 @@ DATA_PATH = {
 # =========================================================
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-GOOGLE_DRIVE_ROOT = Path(
-    r"G:\My Drive\LLMs_studio"
-)
+GOOGLE_DRIVE_ROOT = Path("/content/drive/MyDrive/LLMs_studio")
 
 GOOGLE_DRIVE_PATH = {
     "jobs": GOOGLE_DRIVE_ROOT / "jobs",
