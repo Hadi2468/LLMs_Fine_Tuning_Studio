@@ -129,7 +129,10 @@ def train_model(config: dict):
     # -------------------------
     # SAFE LOG EXTRACTION
     # -------------------------
-    history = trainer.state.log_history
+    history = []
+    for x in trainer.state.log_history:
+        if "loss" in x and isinstance(x.get("loss"), (int, float)):
+            history.append(x)
 
     print("📊 log_history size:", len(history))
 
