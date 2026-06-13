@@ -51,7 +51,7 @@ def train_model(config: dict):
     # -------------------------
     # FIXED ROOT PATH (IMPORTANT)
     # -------------------------
-    gdrive_root = Path(r"G:\My Drive\LLMs_studio")
+    gdrive_root = Path("/content/drive/MyDrive/LLMs_studio")
 
     output_dir = gdrive_root / "logs" / job_id
     model_path = gdrive_root / "models" / job_id
@@ -61,6 +61,8 @@ def train_model(config: dict):
 
     print("📁 Logs:", output_dir)
     print("📁 Model:", model_path)
+    print("📁 Real Root:", gdrive_root)
+    print("📁 Exists:", gdrive_root.exists())
 
     # -------------------------
     # LOAD MODEL
