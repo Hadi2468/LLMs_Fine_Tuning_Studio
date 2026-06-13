@@ -116,7 +116,8 @@ def train_model(config: dict):
             "loss": metrics.get("loss"),
             "learning_rate": metrics.get("learning_rate"),
             "epoch": metrics.get("epoch")
-        }
+        },
+        base_dir="/content/drive/MyDrive/LLMs_studio"
     )
 
      # Save the fine-tuned model
