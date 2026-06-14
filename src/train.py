@@ -11,16 +11,16 @@ def train_model(config: dict):
     import unsloth
     from trl import SFTTrainer, SFTConfig
 
-    # =========================================================
+    # -------------------------
     # GPU CHECK
-    # =========================================================
+    # -------------------------
     if not torch.cuda.is_available():
         print("⚠️ No GPU detected. Aborting training.")
         return False
 
-    # =========================================================
-    # VALIDATE CONFIG
-    # =========================================================
+    # -------------------------
+    # REQUIRED KEYS
+    # -------------------------
     required_keys = [
         "model_name",
         "max_seq_length",
@@ -35,35 +35,36 @@ def train_model(config: dict):
         "optim",
         "job_id",
         "dataset_file",
-        "dataset_path",
     ]
 
     for k in required_keys:
         if k not in config:
             raise ValueError(f"Missing config key: {k}")
 
+    print("\n🚀 Starting training...")
+
     job_id = config["job_id"]
 
-    print("\n🚀 Starting training...")
-    print("🆔 Job:", job_id)
-
-    # =========================================================
-    # GDRIVE ROOT
-    # =========================================================
+    # -------------------------
+    # ROOT (Colab Drive)
+    # -------------------------
     gdrive_root = Path("/content/drive/MyDrive/LLMs_studio")
 
     logs_dir = gdrive_root / "logs" / job_id
     model_dir = gdrive_root / "models" / job_id
+    merged_dir = gdrive_root / "models" / f"{job_id}_merged"
 
     logs_dir.mkdir(parents=True, exist_ok=True)
     model_dir.mkdir(parents=True, exist_ok=True)
+    merged_dir.mkdir(parents=True, exist_ok=True)
 
     print("📁 Logs:", logs_dir)
     print("📁 Model:", model_dir)
+    print("📁 Merged:", merged_dir)
 
-    # =========================================================
+    # -------------------------
     # LOAD MODEL
-    # =========================================================
+    # -------------------------
     model, tokenizer = load_model(
         model_name=config["model_name"],
         max_seq_length=config["max_seq_length"],
@@ -76,17 +77,19 @@ def train_model(config: dict):
     if tokenizer.eos_token is None:
         tokenizer.eos_token = "</s>"
 
-    # =========================================================
+    # -------------------------
     # DATASET
-    # =========================================================
-    dataset = load_dataset(config["dataset_path"])
+    # -------------------------
+    dataset_path = gdrive_root / "datasets" / config["dataset_file"]
+
+    dataset = load_dataset(dataset_path)
     formatted_dataset = format_dataset(dataset, tokenizer)
 
     print(f"📊 Dataset size: {len(formatted_dataset)}")
 
-    # =========================================================
+    # -------------------------
     # TRAINING CONFIG
-    # =========================================================
+    # -------------------------
     training_args = SFTConfig(
         output_dir=str(logs_dir),
         per_device_train_batch_size=config["batch_size"],
@@ -107,9 +110,9 @@ def train_model(config: dict):
         packing=False,
     )
 
-    # =========================================================
+    # -------------------------
     # TRAINER
-    # =========================================================
+    # -------------------------
     trainer = SFTTrainer(
         model=model,
         processing_class=tokenizer,
@@ -118,12 +121,11 @@ def train_model(config: dict):
     )
 
     print("🔥 Training started...")
-
     trainer.train()
 
-    # =========================================================
-    # METRICS EXTRACTION
-    # =========================================================
+    # -------------------------
+    # METRICS
+    # -------------------------
     history = trainer.state.log_history
 
     train_logs = [
@@ -149,29 +151,42 @@ def train_model(config: dict):
 
     print("📊 METRICS READY")
 
-    # =========================================================
-    # SAVE ADAPTER MODEL (NO MERGE - MODE A)
-    # =========================================================
-    model.save_pretrained(str(model_dir))
-    tokenizer.save_pretrained(str(model_dir))
+    # -------------------------
+    # SAVE ADAPTER MODEL
+    # -------------------------
+    model.save_pretrained(model_dir)
+    tokenizer.save_pretrained(model_dir)
 
     print("💾 Adapter model saved")
 
-    # =========================================================
-    # SAVE METRICS
-    # =========================================================
+    # -------------------------
+    # MERGE MODEL (ONLY ONCE — FIXED)
+    # -------------------------
+    print("🔀 Merging LoRA model...")
+
     try:
-        save_train_metrics(
-            job_id=job_id,
-            metrics=metrics_payload,
-            logs_root=gdrive_root / "logs"
-        )
-        print("📊 Metrics saved")
+        merged_model = model.merge_and_unload()
+
+        merged_model.save_pretrained(merged_dir)
+        tokenizer.save_pretrained(merged_dir)
+
+        print("💾 Merged model saved")
 
     except Exception as e:
-        print("⚠️ Metrics saving failed")
+        print("❌ Merge failed:")
         print(repr(e))
+        raise e
 
-    print("\n✅ Training completed successfully!")
+    # -------------------------
+    # SAVE METRICS
+    # -------------------------
+    save_train_metrics(
+        job_id=job_id,
+        metrics=metrics_payload,
+        logs_root=gdrive_root / "logs"
+    )
+
+    print("✅ Metrics saved")
+    print("\n🎉 Training completed successfully!")
 
     return True
