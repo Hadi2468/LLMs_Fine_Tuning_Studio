@@ -46,24 +46,21 @@ def train_model(config: dict):
     job_id = config["job_id"]
 
     # -------------------------
-    # ROOT (Colab Drive)
+    # ROOT PATH (COLAB DRIVE)
     # -------------------------
     gdrive_root = Path("/content/drive/MyDrive/LLMs_studio")
 
     logs_dir = gdrive_root / "logs" / job_id
     model_dir = gdrive_root / "models" / job_id
-    merged_dir = gdrive_root / "models" / f"{job_id}_merged"
 
     logs_dir.mkdir(parents=True, exist_ok=True)
     model_dir.mkdir(parents=True, exist_ok=True)
-    merged_dir.mkdir(parents=True, exist_ok=True)
 
     print("📁 Logs:", logs_dir)
     print("📁 Model:", model_dir)
-    print("📁 Merged:", merged_dir)
 
     # -------------------------
-    # LOAD MODEL
+    # LOAD MODEL (LoRA + Unsloth)
     # -------------------------
     model, tokenizer = load_model(
         model_name=config["model_name"],
@@ -152,30 +149,14 @@ def train_model(config: dict):
     print("📊 METRICS READY")
 
     # -------------------------
-    # SAVE ADAPTER MODEL
+    # SAVE ADAPTER (ONLY OUTPUT)
     # -------------------------
+    print("💾 Saving LoRA adapter...")
+
     model.save_pretrained(model_dir)
     tokenizer.save_pretrained(model_dir)
 
-    print("💾 Adapter model saved")
-
-    # -------------------------
-    # MERGE MODEL (ONLY ONCE — FIXED)
-    # -------------------------
-    print("🔀 Merging LoRA model...")
-
-    try:
-        merged_model = model.merge_and_unload()
-
-        merged_model.save_pretrained(merged_dir)
-        tokenizer.save_pretrained(merged_dir)
-
-        print("💾 Merged model saved")
-
-    except Exception as e:
-        print("❌ Merge failed:")
-        print(repr(e))
-        raise e
+    print("✅ Adapter saved")
 
     # -------------------------
     # SAVE METRICS
@@ -186,7 +167,8 @@ def train_model(config: dict):
         logs_root=gdrive_root / "logs"
     )
 
-    print("✅ Metrics saved")
-    print("\n🎉 Training completed successfully!")
+    print("📊 Metrics saved")
+
+    print("\n🎉 Training completed successfully (Adapter-only mode).")
 
     return True
