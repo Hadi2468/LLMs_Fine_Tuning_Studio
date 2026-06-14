@@ -16,6 +16,9 @@ def submit_job(config: dict):
         "config": config
     }
 
+    print("JOB_DIR =", JOB_DIR)
+    print("JOB_DIR exists =", JOB_DIR.exists())
+
     job_path = JOB_DIR / f"{job_id}.json"
 
     with open(job_path, "w") as f:
