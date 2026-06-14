@@ -179,6 +179,24 @@ def train_model(config: dict):
         logs_root=gdrive_root / "logs"
     )
 
+    print("✅ Metrics saved")
+
+    try:
+
+        merged_model = model.merge_and_unload()
+
+        merged_dir = str(model_path) + "_merged"
+
+        merged_model.save_pretrained(merged_dir)
+        tokenizer.save_pretrained(merged_dir)
+
+        print("✅ Merged model saved")
+
+    except Exception as e:
+
+        print("⚠️ Merge failed")
+        print(repr(e))
+
     print("\n✅ Training completed successfully!")
 
     return True
