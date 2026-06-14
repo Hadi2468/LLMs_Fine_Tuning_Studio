@@ -26,6 +26,8 @@ LOG_DIR = GOOGLE_DRIVE_PATH["logs"]
 MODEL_DIR = GOOGLE_DRIVE_PATH["models"]
 JOB_DIR = GOOGLE_DRIVE_PATH["jobs"]
 
+for p in GOOGLE_DRIVE_PATH.values():
+    p.mkdir(parents=True, exist_ok=True)
 
 # --------------------------------------------------
 # CUSTOM CSS

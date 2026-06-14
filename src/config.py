@@ -22,12 +22,15 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 COLAB_GDRIVE_ROOT = Path("/content/drive/MyDrive/LLMs_studio")
 LOCAL_GDRIVE_ROOT = Path(r"G:\My Drive\LLMs_studio")
+LOCAL_GDRIVE_ROOT.mkdir(parents=True, exist_ok=True)
 GOOGLE_DRIVE_PATH = {
     "jobs": LOCAL_GDRIVE_ROOT / "jobs",
     "datasets": LOCAL_GDRIVE_ROOT / "datasets",
     "models": LOCAL_GDRIVE_ROOT / "models",
     "logs": LOCAL_GDRIVE_ROOT / "logs",
 }
+for p in GOOGLE_DRIVE_PATH.values():
+    p.mkdir(parents=True, exist_ok=True)
 
 # =========================================================
 # MODEL CATALOG
