@@ -1,13 +1,34 @@
 import streamlit as st
 import torch
-from pathlib import Path
-from peft import PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
+from pathlib import Path
 
 from src.inference import generate
 
 
-BASE_MODEL = "meta-llama/Llama-3.2-1B"  # adjust if needed
+@st.cache_resource
+def load_model_and_tokenizer(model_dir):
+
+    dtype = (
+        torch.float16
+        if torch.cuda.is_available()
+        else torch.float32
+    )
+            
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_dir,
+        use_fast=True
+    )
+
+    model = AutoModelForCausalLM.from_pretrained(
+        model_dir,
+        torch_dtype=dtype,
+        device_map="auto" if torch.cuda.is_available() else None
+    )
+
+    model.eval()
+
+    return model, tokenizer
 
 
 def render_inference_panel():
@@ -21,21 +42,19 @@ def render_inference_panel():
     # -------------------------
     model = None
     tokenizer = None
-
+  
     if model_path:
-        tokenizer = AutoTokenizer.from_pretrained(model_path)
 
-        base_model = AutoModelForCausalLM.from_pretrained(
-            BASE_MODEL,
-            torch_dtype=torch.float16,
-            device_map="auto"
-        )
+        merged_model_path = model_path + "_merged"
 
-        model = PeftModel.from_pretrained(base_model, model_path)
-        model.eval()
+        if not Path(merged_model_path).exists():
+            st.error(f"Merged model not found:\n{merged_model_path}")
+            return
 
-        st.success(f"Loaded model from: {model_path}")
+        model, tokenizer = load_model_and_tokenizer(merged_model_path)
 
+        st.success(f"Loaded model from: {merged_model_path}")
+         
     # -------------------------
     # Init chat history
     # -------------------------

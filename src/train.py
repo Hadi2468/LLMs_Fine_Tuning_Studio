@@ -129,33 +129,26 @@ def train_model(config: dict):
     # -------------------------
     # SAFE LOG EXTRACTION
     # -------------------------
-    history = []
-    for x in trainer.state.log_history:
-        if "loss" in x and isinstance(x.get("loss"), (int, float)):
-            history.append(x)
+    history = trainer.state.log_history
 
-    print("📊 log_history size:", len(history))
-
-    losses = [
-        x.get("loss") or x.get("train_loss")
-        for x in history
-        if x.get("loss") is not None or x.get("train_loss") is not None
+    train_logs = [
+        x for x in history
+        if "loss" in x and x.get("loss") is not None
     ]
 
-    losses = [l for l in losses if l is not None]
+    losses = [x["loss"] for x in train_logs]
 
     metrics_payload = {
         "final_loss": losses[-1] if losses else None,
         "min_loss": min(losses) if losses else None,
-        "num_logs": len(history),
+        "num_logs": len(train_logs),
         "history": [
             {
-                "loss": x.get("loss") or x.get("train_loss"),
+                "loss": x["loss"],
                 "learning_rate": x.get("learning_rate"),
                 "epoch": x.get("epoch")
             }
-            for x in history
-            if (x.get("loss") is not None or x.get("train_loss") is not None)
+            for x in train_logs
         ]
     }
 
@@ -168,6 +161,14 @@ def train_model(config: dict):
     tokenizer.save_pretrained(str(model_path))
 
     print("💾 Model saved")
+
+    # Save merged model
+    merged_model = model.merge_and_unload()
+    merged_path = str(model_path) + "_merged"
+    merged_model.save_pretrained(merged_path)
+    tokenizer.save_pretrained(merged_path)
+    
+    print("💾 Merged model saved")
 
     # -------------------------
     # SAVE METRICS (CRITICAL FIX)
